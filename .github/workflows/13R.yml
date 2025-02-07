@@ -1,8 +1,29 @@
-name: Build OnePlus 13r Android 15 6.1 Kernel
+name: Build OnePlus 13r Android 15 6.1 Kernel KernelSU Next SUSFS
 
 on:
-  workflow_call:  # This allows this workflow to be called from another workflow
-  
+  workflow_dispatch:
+    inputs:
+      CPU:
+        description: "分支"
+        required: true
+        default: 'sm8650'
+      FEIL:
+        description: "配置文件"
+        required: true
+        default: 'oneplus_13R'
+      CPUD:
+        description: "处理器代号"
+        required: true
+        default: 'pineapple'
+      ANDROID_VERSION:
+        description: "内核安卓版本"
+        required: true
+        default: 'android14'
+      KERNEL_VERSION:
+        description: "内核版本"
+        required: true
+        default: '6.1'
+
 jobs:
   build-kernel-a14-6-1-kernelsu-susfs:
     runs-on: ubuntu-22.04
