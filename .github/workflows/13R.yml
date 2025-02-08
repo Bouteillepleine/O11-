@@ -26,6 +26,8 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -qq curl
           curl -fsSL https://raw.githubusercontent.com/kou/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
+
+
       - name: Setup Build Environment
         run: |
           sudo apt-get update
@@ -51,6 +53,7 @@ jobs:
             python3-setuptools \
             rsync \
             ccache
+
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -64,6 +67,7 @@ jobs:
           cd pahole
           cmake .
           sudo make install
+
       - name: Setup Python and Repo Tool
         run: |
           python3 -m pip install --upgrade pip
@@ -75,6 +79,7 @@ jobs:
           echo "$HOME/.bin" >> $GITHUB_PATH
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
+
       - name: Install repo tool to $HOME/bin
         run: |
          mkdir -p $HOME/bin
@@ -82,18 +87,22 @@ jobs:
          chmod a+x $HOME/bin/repo
          export PATH=$HOME/bin:$PATH
          repo --version
+
+
       - name: Configure Build Directory
         run: |
           ROOT_DIR="${ROOT_DIR_PREFIX}-$(date +'%Y-%m-%d-%I-%M-%p')-release"
           echo "ROOT_DIR=${ROOT_DIR}" >> $GITHUB_ENV
           mkdir -p "builds/${ROOT_DIR}"
           cd "builds/${ROOT_DIR}"
+
       - name: Clone Required Repositories
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
           git clone https://github.com/TheWildJames/AnyKernel3.git -b $BRANCH
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
           git clone https://github.com/WildPlusKernel/kernel_patches.git
+
       - name: Setup Kernel Source
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
@@ -102,6 +111,7 @@ jobs:
           repo init -u https://github.com/edjocute/kernel_manifest.git -b oneplus/sm8650 -m oneplus13r_v.xml --depth=1
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
           rm -rf ./kernel_platform/common/android/abi_gki_protected_exports_*
+
       - name: Setup KernelSU
         working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
         run: |
@@ -131,6 +141,7 @@ jobs:
           #cp ../../../kernel_patches/Makefile_fix.patch ./
           #cp ../../../kernel_patches/core_hook.c_fix.patch ./
           cp ../../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./KernelSU-Next
+
           # Apply patches
           cd KernelSU-Next
           patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
@@ -147,6 +158,7 @@ jobs:
           #patch -p1 -F 3 < apk_sign.c_fix.patch || true
           #patch -p1 --fuzz=3 < Makefile_fix.patch || true
           #patch -p1 --fuzz=3 < core_hook.c_fix.patch || true
+
       - name: Configure Kernel
         working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
         run: |
@@ -169,7 +181,14 @@ jobs:
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
           
-        - name: Build Kernel
+          # Add additional tmpfs config setting
+          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
+       
+          
+          # Remove defconfig check
+          sed -i '2s/check_defconfig//' ./common/build.config.gki
+
+      - name: Build Kernel
         working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/
         run: |
           cd kernel_platform
@@ -186,20 +205,29 @@ jobs:
             --ignore_missing_projects \
             -o "$(pwd)/out"
             
-        - name: Create ZIP Package
+      - name: Debug Working Directory
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform/out/dist
+        run: |         
+          pwd
+          ls -l
+
+      - name: Create ZIP Package
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
           cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
           cd AnyKernel3  # Move to AnyKernel3 directory
-          ZIP_NAME="Anykernel3-OP13r"
+          ZIP_NAME="Anykernel3-OP13r.zip"
           echo "Creating zip file $ZIP_NAME..."
           zip -r "../$ZIP_NAME" ./*
           ls -lh "../$ZIP_NAME"
           echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
-          
+
         - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: kernel-${{ env.CONFIG }}
           path: |
             *.zip
+
+              
+    
