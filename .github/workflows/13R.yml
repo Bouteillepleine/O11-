@@ -1,29 +1,17 @@
-name: Build OnePlus 13r Android 15 6.1 Kernel KernelSU Next SUSFS
+name: Build and Release Kernel
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      CPU:
-        description: "分支"
-        required: true
-        default: 'sm8650'
-      FEIL:
-        description: "配置文件"
-        required: true
-        default: 'oneplus_13R'
-      CPUD:
-        description: "处理器代号"
-        required: true
-        default: 'pineapple'
-      ANDROID_VERSION:
-        description: "内核安卓版本"
-        required: true
-        default: 'android14'
-      KERNEL_VERSION:
-        description: "内核版本"
-        required: true
-        default: '6.1'
 
+env:
+  DEBIAN_FRONTEND: noninteractive
+  ROOT_DIR_PREFIX: "OP13r-A15"
+  BRANCH: "android14-6.1"
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
 jobs:
   build-release:
     runs-on: ubuntu-latest
@@ -38,7 +26,6 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -qq curl
           curl -fsSL https://raw.githubusercontent.com/kou/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
-
       - name: Setup Build Environment
         run: |
           sudo apt-get update
@@ -64,7 +51,6 @@ jobs:
             python3-setuptools \
             rsync \
             ccache
-
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -78,7 +64,6 @@ jobs:
           cd pahole
           cmake .
           sudo make install
-
       - name: Setup Python and Repo Tool
         run: |
           python3 -m pip install --upgrade pip
@@ -90,7 +75,6 @@ jobs:
           echo "$HOME/.bin" >> $GITHUB_PATH
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-
       - name: Install repo tool to $HOME/bin
         run: |
          mkdir -p $HOME/bin
@@ -98,22 +82,18 @@ jobs:
          chmod a+x $HOME/bin/repo
          export PATH=$HOME/bin:$PATH
          repo --version
-
-
       - name: Configure Build Directory
         run: |
           ROOT_DIR="${ROOT_DIR_PREFIX}-$(date +'%Y-%m-%d-%I-%M-%p')-release"
           echo "ROOT_DIR=${ROOT_DIR}" >> $GITHUB_ENV
           mkdir -p "builds/${ROOT_DIR}"
           cd "builds/${ROOT_DIR}"
-
       - name: Clone Required Repositories
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
           git clone https://github.com/TheWildJames/AnyKernel3.git -b $BRANCH
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
           git clone https://github.com/WildPlusKernel/kernel_patches.git
-
       - name: Setup Kernel Source
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
@@ -122,7 +102,6 @@ jobs:
           repo init -u https://github.com/edjocute/kernel_manifest.git -b oneplus/sm8650 -m oneplus13r_v.xml --depth=1
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
           rm -rf ./kernel_platform/common/android/abi_gki_protected_exports_*
-
       - name: Setup KernelSU
         working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
         run: |
@@ -152,7 +131,6 @@ jobs:
           #cp ../../../kernel_patches/Makefile_fix.patch ./
           #cp ../../../kernel_patches/core_hook.c_fix.patch ./
           cp ../../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./KernelSU-Next
-
           # Apply patches
           cd KernelSU-Next
           patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
@@ -169,7 +147,6 @@ jobs:
           #patch -p1 -F 3 < apk_sign.c_fix.patch || true
           #patch -p1 --fuzz=3 < Makefile_fix.patch || true
           #patch -p1 --fuzz=3 < core_hook.c_fix.patch || true
-
       - name: Configure Kernel
         working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
         run: |
@@ -221,7 +198,6 @@ jobs:
         run: |         
           pwd
           ls -l
-
       - name: Create ZIP Package
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
@@ -232,17 +208,14 @@ jobs:
           zip -r "../$ZIP_NAME" ./*
           ls -lh "../$ZIP_NAME"
           echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
-
       - name: Publish Release
         run: |
           # Change to the correct directory
           cd "./builds/${{ env.ROOT_DIR }}"
-
           # Debugging variables
           echo "ZIP_NAME: ${{ env.zip_name }}"
           ZIP_FILE_PATH="${GITHUB_WORKSPACE}/builds/${{ env.ROOT_DIR }}/${{ env.zip_name }}"
           echo "ZIP_FILE_PATH: $ZIP_FILE_PATH"
-
           # Validate ZIP file existence
           if [ -f "$ZIP_FILE_PATH" ]; then
               echo "ZIP file found: $ZIP_FILE_PATH"
@@ -250,10 +223,8 @@ jobs:
               echo "Error: ZIP file not found at $ZIP_FILE_PATH!"
               exit 1
           fi
-
           # Define the repository name if not already set
           REPO_NAME=${REPO_NAME:-$GITHUB_REPOSITORY}
-
           # Create a release using the GitHub CLI
           gh release create "v${{ env.BRANCH }}-$(date +'%Y.%m.%d-%H%M%S')" "$ZIP_FILE_PATH" \
             --repo "$REPO_NAME" \
