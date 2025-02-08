@@ -202,21 +202,19 @@ jobs:
             --ignore_missing_projects \
             -o "$(pwd)/out"
 
-      - name: Create ZIP Package
-        working-directory: builds/${{ env.ROOT_DIR }}
-        run: |
-          cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
-          cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image.lz4 AnyKernel3/Image.lz4
-          cd AnyKernel3  # Move to AnyKernel3 directory
-          ZIP_NAME="Anykernel3-OP13r.zip"
-          echo "Creating zip file $ZIP_NAME..."
-          zip -r "../$ZIP_NAME" ./*
-          ls -lh "../$ZIP_NAME"
-          echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
+     - name: Create ZIP Package
+  working-directory: builds/${{ env.ROOT_DIR }}
+  run: |
+    cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
+   cd AnyKernel3  # Move to AnyKernel3 directory
+    ZIP_NAME="Anykernel3-OP13r.zip"
+    echo "Creating zip file $ZIP_NAME..."
+    zip -r "../$ZIP_NAME" ./*
+    ls -lh "../$ZIP_NAME"
+    echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: kernel-${{ env.CONFIG }}
-          path: |
-            *.zip
+- name: Upload Build Artifacts
+  uses: actions/upload-artifact@v4
+  with:
+    name: kernel-${{ env.CONFIG }}
+    path: builds/${{ env.ROOT_DIR }}/*.zip
