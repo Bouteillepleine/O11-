@@ -1,4 +1,4 @@
-name: Build OnePlus 13r Android 15 6.1 Kernel KernelSU Next SUSFS
+name: Build OnePlus 13 Android 15 6.6
 
 on:
   workflow_dispatch:
@@ -85,7 +85,7 @@ jobs:
           
           # Initialize and sync kernel source
           echo "Initializing and syncing kernel source..."
-          repo init -u https://github.com/cabagekiller/kernel_manifest.git -b oneplus/sm8750 -m oneplus13_v.xml --depth=1
+          repo init -u https://github.com/cabagekiller/kernel_manifest.git -b refs/heads/oneplus/sm8750 -m oneplus13_v.xml --depth=1
           
           # Sync repo and apply patches
           repo --version
@@ -207,7 +207,7 @@ jobs:
           rm -rf ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
           rm -rf .git || echo "No .git found!"
           #git config --global user.name "build"
-          #git config --global user.email "bouteille@users.noreply.github.com"
+          #git config --global user.email "Bouteillepleine@users.noreply.github.com"
           #git add *
           #git commit -s -a -m "getting rid of -dirty"
           
