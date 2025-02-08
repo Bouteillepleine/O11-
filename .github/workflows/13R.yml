@@ -27,7 +27,6 @@ jobs:
           sudo apt-get install -qq curl
           curl -fsSL https://raw.githubusercontent.com/kou/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
 
-
       - name: Setup Build Environment
         run: |
           sudo apt-get update
@@ -82,12 +81,11 @@ jobs:
 
       - name: Install repo tool to $HOME/bin
         run: |
-         mkdir -p $HOME/bin
-         wget -O $HOME/bin/repo https://storage.googleapis.com/git-repo-downloads/repo
-         chmod a+x $HOME/bin/repo
-         export PATH=$HOME/bin:$PATH
-         repo --version
-
+          mkdir -p $HOME/bin
+          wget -O $HOME/bin/repo https://storage.googleapis.com/git-repo-downloads/repo
+          chmod a+x $HOME/bin/repo
+          export PATH=$HOME/bin:$PATH
+          repo --version
 
       - name: Configure Build Directory
         run: |
@@ -120,18 +118,18 @@ jobs:
           KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
           sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" Makefile
-          
+
       - name: Setup SUSFS
         working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
         run: |
           # Create necessary directories
           mkdir -p ./common/fs
           mkdir -p ./common/include/linux
-          
+
           # Copy SUSFS files
           cp ../../../susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ../../../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-          
+
           # Copy patches
           cp ../../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
           cp ../../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
@@ -145,7 +143,7 @@ jobs:
           # Apply patches
           cd KernelSU-Next
           patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
-          
+
           cd ../common
           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
           patch -p1 -F 3 < 69_hide_stuff.patch || true
@@ -180,11 +178,10 @@ jobs:
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
+
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
-       
-          
+
           # Remove defconfig check
           sed -i '2s/check_defconfig//' ./common/build.config.gki
 
@@ -204,23 +201,22 @@ jobs:
             --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
             --ignore_missing_projects \
             -o "$(pwd)/out"
-                 
-     - name: Create ZIP Package
-  working-directory: builds/${{ env.ROOT_DIR }}
-  run: |
-    cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
-    cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image.lz4 AnyKernel3/Image.lz4
-    cd AnyKernel3  # Move to AnyKernel3 directory
-    ZIP_NAME="Anykernel3-OP13r.zip"
-    echo "Creating zip file $ZIP_NAME..."
-    zip -r "../$ZIP_NAME" ./*
-    ls -lh "../$ZIP_NAME"
-    echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
 
-- name: Upload Build Artifacts
-  uses: actions/upload-artifact@v4
-  with:
-    name: kernel-${{ env.CONFIG }}
-    path: |
-      *.zip
-   
+      - name: Create ZIP Package
+        working-directory: builds/${{ env.ROOT_DIR }}
+        run: |
+          cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
+          cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image.lz4 AnyKernel3/Image.lz4
+          cd AnyKernel3  # Move to AnyKernel3 directory
+          ZIP_NAME="Anykernel3-OP13r.zip"
+          echo "Creating zip file $ZIP_NAME..."
+          zip -r "../$ZIP_NAME" ./*
+          ls -lh "../$ZIP_NAME"
+          echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-${{ env.CONFIG }}
+          path: |
+            *.zip
