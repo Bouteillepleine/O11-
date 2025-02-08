@@ -205,13 +205,7 @@ jobs:
             --ignore_missing_projects \
             -o "$(pwd)/out"
             
-      - name: Debug Working Directory
-        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform/out/dist
-        run: |         
-          pwd
-          ls -l
-
-      - name: Create ZIP Package
+        - name: Create ZIP Package
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
           cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
