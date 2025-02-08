@@ -203,42 +203,15 @@ jobs:
         run: |
           cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
           cd AnyKernel3  # Move to AnyKernel3 directory
-          ZIP_NAME="Anykernel3-OP13r-A15-android14-6.1-KernelSUNext-SUSFS-$(date +'%Y-%m-%d-%H-%M-%S').zip"
+          ZIP_NAME="Anykernel3-OP13r"
           echo "Creating zip file $ZIP_NAME..."
           zip -r "../$ZIP_NAME" ./*
           ls -lh "../$ZIP_NAME"
           echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
-      - name: Publish Release
-        run: |
-          # Change to the correct directory
-          cd "./builds/${{ env.ROOT_DIR }}"
-          # Debugging variables
-          echo "ZIP_NAME: ${{ env.zip_name }}"
-          ZIP_FILE_PATH="${GITHUB_WORKSPACE}/builds/${{ env.ROOT_DIR }}/${{ env.zip_name }}"
-          echo "ZIP_FILE_PATH: $ZIP_FILE_PATH"
-          # Validate ZIP file existence
-          if [ -f "$ZIP_FILE_PATH" ]; then
-              echo "ZIP file found: $ZIP_FILE_PATH"
-          else
-              echo "Error: ZIP file not found at $ZIP_FILE_PATH!"
-              exit 1
-          fi
-          # Define the repository name if not already set
-          REPO_NAME=${REPO_NAME:-$GITHUB_REPOSITORY}
-          # Create a release using the GitHub CLI
-          gh release create "v${{ env.BRANCH }}-$(date +'%Y.%m.%d-%H%M%S')" "$ZIP_FILE_PATH" \
-            --repo "$REPO_NAME" \
-            --title "OP13r A15 ${{ env.BRANCH }} With KernelSU & SUSFS" \
-            --notes "Kernel release" \
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-           
-      - name: Upload Build Logs
+          
+        - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: build-logs
+          name: kernel-${{ env.CONFIG }}
           path: |
-            builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform/out/*.log
-            builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform/**/*.rej
-          retention-days: 5
+            *.zip
