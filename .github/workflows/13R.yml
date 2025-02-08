@@ -180,11 +180,14 @@ jobs:
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
-
+          
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
+       
           
-                    
+          # Remove defconfig check
+          sed -i '2s/check_defconfig//' ./common/build.config.gki
+
       - name: Build Kernel
         working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/
         run: |
@@ -202,10 +205,17 @@ jobs:
             --ignore_missing_projects \
             -o "$(pwd)/out"
             
-        - name: Create ZIP Package
+      - name: Debug Working Directory
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform/out/dist
+        run: |         
+          pwd
+          ls -l
+
+      - name: Create ZIP Package
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
           cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
+          cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image.lz4 AnyKernel3/Image.lz4
           cd AnyKernel3  # Move to AnyKernel3 directory
           ZIP_NAME="Anykernel3-OP13r.zip"
           echo "Creating zip file $ZIP_NAME..."
@@ -213,12 +223,9 @@ jobs:
           ls -lh "../$ZIP_NAME"
           echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
 
-        - name: Upload Build Artifacts
+         - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: kernel-${{ env.CONFIG }}
           path: |
             *.zip
-
-              
-    
