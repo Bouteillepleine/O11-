@@ -1,4 +1,4 @@
-name: Build and Release Kernel
+Name: Build and Release Kernel
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 env:
   DEBIAN_FRONTEND: noninteractive
   ROOT_DIR_PREFIX: "OP13-A15"
-  BRANCH: "android14-6.6"
+  BRANCH: "android15-6.6"
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
 jobs:
@@ -98,7 +98,7 @@ jobs:
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
           git clone https://github.com/TheWildJames/AnyKernel3.git -b $BRANCH
-          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.6
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android15-6.6
           git clone https://github.com/WildPlusKernel/kernel_patches.git
 
       - name: Setup Kernel Source
@@ -120,7 +120,7 @@ jobs:
           sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" Makefile
 
       - name: Setup SUSFS
-        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13_v/kernel_platform
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
         run: |
           # Create necessary directories
           mkdir -p ./common/fs
@@ -132,7 +132,7 @@ jobs:
 
           # Copy patches
           cp ../../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
-          cp ../../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.6.patch ./common/
+          cp ../../../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android15-6.6.patch ./common/
           cp ../../../kernel_patches/69_hide_stuff.patch ./common/
           #cp ../../../kernel_patches/selinux.c_fix.patch ./
           #cp ../../../kernel_patches/apk_sign.c_fix.patch ./
@@ -145,7 +145,7 @@ jobs:
           patch -p1 --forward < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
 
           cd ../common
-          patch -p1 < 50_add_susfs_in_gki-android14-6.6.patch || true
+          patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
           patch -p1 -F 3 < 69_hide_stuff.patch || true
           sed -i '/obj-$(CONFIG_KSU_SUSFS_SUS_SU) += sus_su.o/d' ./fs/Makefile
           git add -A && git commit -a -m "BUILD Kernel" || true
@@ -153,7 +153,7 @@ jobs:
           git add -A && git commit -a -m "BUILD Kernel" || true
           git rm --cached KernelSU-Next
           #patch -p1 -F 3 < selinux.c_fix.patch || true
-          #patch -p1 -F 3 < apk_sign.c_fix.patch || true
+          #patch -p1 -F 3 < apk_sign.c.fix.patch || true
           #patch -p1 --fuzz=3 < Makefile_fix.patch || true
           #patch -p1 --fuzz=3 < core_hook.c.fix.patch || true
 
@@ -205,7 +205,7 @@ jobs:
       - name: Create ZIP Package
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
-          cp kernel_platform/oneplus13_v/kernel_platform/out/dist/Image AnyKernel3/Image
+          cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
           cd AnyKernel3  # Move to AnyKernel3 directory
           ZIP_NAME="Anykernel3-OP13.zip"
           echo "Creating zip file $ZIP_NAME..."
