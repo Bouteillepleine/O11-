@@ -1,4 +1,4 @@
-Name: Build and Release Kernel
+name: Build and Release Kernel
 
 on:
   push:
@@ -111,7 +111,7 @@ jobs:
           rm -rf ./kernel_platform/common/android/abi_gki_protected_exports_*
 
       - name: Setup KernelSU
-        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13_v/kernel_platform
         run: |
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
           cd KernelSU-Next/kernel
@@ -120,7 +120,7 @@ jobs:
           sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" Makefile
 
       - name: Setup SUSFS
-        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13_v/kernel_platform
         run: |
           # Create necessary directories
           mkdir -p ./common/fs
@@ -205,7 +205,8 @@ jobs:
       - name: Create ZIP Package
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
-          cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
+          cp kernel_platform/oneplus13_v/kernel_platform/out/dist/Image AnyKernel3/Image
+          cp kernel_platform/oneplus13_v/kernel_platform/out/dist/Image.lz4 AnyKernel3/Image.lz4
           cd AnyKernel3  # Move to AnyKernel3 directory
           ZIP_NAME="Anykernel3-OP13.zip"
           echo "Creating zip file $ZIP_NAME..."
