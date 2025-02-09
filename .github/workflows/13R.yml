@@ -206,7 +206,6 @@ jobs:
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
           cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
-          cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image.lz4 AnyKernel3/Image.lz4
           cd AnyKernel3  # Move to AnyKernel3 directory
           ZIP_NAME="Anykernel3-OP13r.zip"
           echo "Creating zip file $ZIP_NAME..."
