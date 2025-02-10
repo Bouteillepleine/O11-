@@ -106,7 +106,7 @@ jobs:
         run: |
           mkdir -p kernel_platform/oneplus13r_v
           cd kernel_platform/oneplus13r_v
-          repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/sm8650 -m oneplus13r.xml --depth=1
+          repo init -u https://github.com/OnePlusOSS/kernel_manifest/blob/oneplus/sm8650/oneplus_13r.xml --depth=1
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
           rm -rf ./kernel_platform/common/android/abi_gki_protected_exports_*
 
