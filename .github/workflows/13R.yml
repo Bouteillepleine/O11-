@@ -104,8 +104,8 @@ jobs:
       - name: Setup Kernel Source
         working-directory: builds/${{ env.ROOT_DIR }}
         run: |
-          mkdir -p kernel_platform/oneplus13r_v
-          cd kernel_platform/oneplus13r_v
+          mkdir -p kernel_platform/oneplus13r
+          cd kernel_platform/oneplus13r
           repo init -u https://github.com/OnePlusOSS/kernel_manifest/blob/oneplus/sm8650/oneplus_13r.xml --depth=1
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
           rm -rf ./kernel_platform/common/android/abi_gki_protected_exports_*
@@ -158,7 +158,7 @@ jobs:
           #patch -p1 --fuzz=3 < core_hook.c.fix.patch || true
 
       - name: Configure Kernel
-        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r/kernel_platform
         run: |
           # Add SUSFS configuration settings
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
