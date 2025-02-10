@@ -111,7 +111,7 @@ jobs:
           rm -rf ./kernel_platform/common/android/abi_gki_protected_exports_*
 
       - name: Setup KernelSU
-        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r/kernel_platform
         run: |
           curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
           cd KernelSU-Next/kernel
@@ -120,7 +120,7 @@ jobs:
           sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" Makefile
 
       - name: Setup SUSFS
-        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/kernel_platform
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r/kernel_platform
         run: |
           # Create necessary directories
           mkdir -p ./common/fs
@@ -186,7 +186,7 @@ jobs:
           sed -i '2s/check_defconfig//' ./common/build.config.gki
 
       - name: Build Kernel
-        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r_v/
+        working-directory: builds/${{ env.ROOT_DIR }}/kernel_platform/oneplus13r/
         run: |
           cd kernel_platform
           mkdir out
